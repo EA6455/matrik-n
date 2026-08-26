@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Matrik-N — live AI signal & quantitative analysis for XAUUSD / gold. Real market data, pro-trader composite signal.">
+<meta name="theme-color" content="#0b0f16">
+<title>Matrik-N · XAUUSD AI Signal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f5b301'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='16' font-weight='800' fill='%231a1200' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0b0f16; --card:#121722; --card2:#0e131d; --border:#1e2634;
+    --text:#e7edf6; --muted:#8ba0bd; --muted2:#5f7189;
+    --up:#22c55e; --down:#ef4444; --gold:#f5b301; --neutral:#64748b;
+    --accent:#38bdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(1200px 700px at 80% -10%, #14202f 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:18px 20px 40px;
+  }
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto}
+
+  /* header */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:11px;background:linear-gradient(140deg,#f5b301,#b97a00);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#1a1200;letter-spacing:.5px;box-shadow:0 6px 20px rgba(245,179,1,.25)}
+  .brand h1{font-size:20px;font-weight:800;letter-spacing:.3px}
+  .brand p{font-size:12px;color:var(--muted)}
+  .quote{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .price{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  .chg{font-size:13px;padding:5px 10px;border-radius:8px;font-weight:700}
+  .chg.up{background:rgba(34,197,94,.14);color:var(--up)}
+  .chg.down{background:rgba(239,68,68,.14);color:var(--down)}
+  .live{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--card)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(245,179,1,.6);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(245,179,1,.5)}70%{box-shadow:0 0 0 8px rgba(245,179,1,0)}100%{box-shadow:0 0 0 0 rgba(245,179,1,0)}}
+  .btn{font-size:12px;font-weight:700;color:var(--text);background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 13px;cursor:pointer;transition:.2s}
+  .btn:hover{border-color:var(--accent);color:#fff}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}
+  @media(max-width:1020px){.grid{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:16px}
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:15px;padding:16px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+  .card h2 .sub{text-transform:none;letter-spacing:0;color:var(--muted2);font-weight:500;font-size:11px}
+
+  /* signal hero */
+  .hero{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .signal-badge{font-size:26px;font-weight:900;letter-spacing:1px;padding:14px 22px;border-radius:13px}
+  .signal-badge.BUY{background:rgba(34,197,94,.14);color:var(--up);border:1px solid rgba(34,197,94,.4)}
+  .signal-badge.SELL{background:rgba(239,68,68,.14);color:var(--down);border:1px solid rgba(239,68,68,.4)}
+  .signal-badge.NEUTRAL{background:rgba(100,116,139,.14);color:var(--muted);border:1px solid rgba(100,116,139,.4)}
+  .strength{font-size:12px;font-weight:700;margin-top:6px;color:var(--muted)}
+  .gauge{position:relative;width:150px;height:82px;flex-shrink:0}
+  .gauge svg{width:100%;height:100%}
+  .gauge .val{position:absolute;bottom:-2px;left:0;right:0;text-align:center;font-size:20px;font-weight:800}
+  .gauge .lbl{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted);letter-spacing:1px}
+
+  /* component bars */
+  .comp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .comp-item{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:10px 12px}
+  .comp-item .lab{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:8px}
+  .comp-item .lab b{color:var(--text)}
+  .track{height:8px;border-radius:6px;background:#1a2230;overflow:hidden;position:relative}
+  .fill{position:absolute;top:0;bottom:0;border-radius:6px}
+  .zero{position:absolute;top:0;bottom:0;width:1px;background:#3a4a60;left:50%}
+
+  /* trade plan */
+  .plan{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .plan .box{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:12px}
+  .plan .box .k{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+  .plan .box .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .box.entry .v{color:var(--accent)}
+  .plan .box.stop .v{color:var(--down)}
+  .plan .box.target .v{color:var(--up)}
+  .rr-line{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:8px 4px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:11px}
+  td.vals{font-variant-numeric:tabular-nums;font-weight:600}
+  .b-up{color:var(--up)}.b-down{color:var(--down)}.b-neu{color:var(--muted)}
+  .lvlline{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .lvlline b{font-variant-numeric:tabular-nums}
+  .side-note{font-size:11px;color:var(--muted2);line-height:1.5;margin-top:12px}
+  .pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.5px}
+  .pill.buyse{background:rgba(34,197,94,.15);color:var(--up)}
+  .pill.not{background:rgba(100,116,139,.15);color:var(--muted)}
+  canvas{width:100%;display:block;background:var(--card2);border-radius:10px;border:1px solid var(--border)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+  .legend span::before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .l-ema9::before{background:var(--accent)}.l-ema21::before{background:#a78bfa}.l-ema50::before{background:#f5b301}
+  .l-bb::before{background:rgba(56,189,248,.4)}
+  .foot{text-align:center;color:var(--muted2);font-size:11px;margin-top:22px;line-height:1.6}
+  .foot b{color:var(--muted)}
+  .sel{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}.plan{grid-template-columns:1fr}}
+  .updating{opacity:.55;transition:.2s}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">MN</div>
+      <div>
+        <h1>Matrik-<span style="color:var(--gold)">N</span></h1>
+        <p>XAUUSD · Gold AI Signal <span style="color:var(--muted2)">·</span> live composite analysis</p>
+      </div>
+    </div>
+    <div class="quote">
+      <div class="price" id="price">—</div>
+      <div class="chg" id="chg">—</div>
+      <div class="live"><span class="dot"></span><span id="liveTxt">LIVE</span></div>
+      <button class="btn" id="refresh">↻ Refresh</button>
+      <select class="sel" id="period">
+        <option value="1d">1D</option>
+        <option value="5d" selected>5D</option>
+        <option value="1mo">1M</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- MAIN -->
+    <div class="col">
+      <div class="card">
+        <h2>Signal Overview <span class="sub" id="updated"></span></h2>
+        <div class="hero">
+          <div>
+            <div class="signal-badge" id="sigbadge">—</div>
+            <div class="strength" id="strength"></div>
+          </div>
+          <div class="gauge">
+            <svg id="gaugeSvg" viewBox="0 0 150 88"></svg>
+            <div class="val" id="gaugeVal">—</div>
+            <div class="lbl">CONFIDENCE</div>
+          </div>
+          <div style="flex:1;min-width:150px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Composite score (bearish ← → bullish)</div>
+            <div class="track" style="height:12px">
+              <div class="fill" id="scoreFill" style="left:50%;width:0px"></div>
+              <div class="zero"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-top:6px"><span>-100</span><span>0</span><span>+100</span></div>
+          </div>
+        </div>
+        <div class="comp" style="margin-top:16px">
+          <div class="comp-item"><div class="lab"><span>Trend</span><b id="c1">—</b></div><div class="track"><div class="zero"></div><div class="fill" id="f1"></div></div></div>
+          <div class="comp-item"><div class="lab"><span>Momentum</span><b id="c2">—</b></div><div class="track"><div class="zero"></div><div class="fill" id="f2"></div></div></div>
+          <div class="comp-item"><div class="lab"><span>Volatility / Reversion</span><b id="c3">—</b></div><div class="track"><div class="zero"></div><div class="fill" id="f3"></div></div></div>
+          <div class="comp-item"><div class="lab"><span>Volume Confirmation</span><b id="c4">—</b></div><div class="track"><div class="zero"></div><div class="fill" id="f4"></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Price · XAUUSD (Gold) <span class="sub" id="chartSub">EMA 9/21/50 · Bollinger (20,2)</span></h2>
+        <canvas id="priceChart" height="340"></canvas>
+        <div class="legend">
+          <span class="l-ema9">EMA 9</span><span class="l-ema21">EMA 21</span>
+          <span class="l-ema50">EMA 50</span><span class="l-bb">Bollinger (20,2)</span>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>RSI (14)</h2>
+          <canvas id="rsiChart" height="150"></canvas>
+        </div>
+        <div class="card">
+          <h2>MACD (12,26,9)</h2>
+          <canvas id="macdChart" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col">
+      <div class="card">
+        <h2>Trade Plan <span class="sub">ATR-based</span></h2>
+        <div class="plan">
+          <div class="box entry"><div class="k">Entry</div><div class="v" id="plEntry">—</div></div>
+          <div class="box stop"><div class="k">Stop Loss</div><div class="v" id="plStop">—</div></div>
+          <div class="box target"><div class="k">Take Profit</div><div class="v" id="plTarget">—</div></div>
+        </div>
+        <div class="rr-line">
+          <span>Reward : Risk</span><b id="plRr">1 : 2.0</b>
+          <span>ATR(14)</span><b id="plAtr">—</b>
+        </div>
+        <div class="side-note">
+          Signals are <b>not financial advice</b>. Risk no more than 1–2% of equity per trade.
+          The stop is placed ATR(14) × 1.5 above/below entry.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Key Levels</h2>
+        <div class="lvlline"><span>Nearest Support</span><b id="lvSup" style="color:var(--up)">—</b></div>
+        <div class="lvlline"><span>Nearest Resistance</span><b id="lvRes" style="color:var(--down)">—</b></div>
+        <div class="lvlline"><span>Pivot (P)</span><b id="lvP" class="b-neu">—</b></div>
+        <div class="lvlline"><span>Resistance R1 / R2</span><b id="lvR">—</b></div>
+        <div class="lvlline"><span>Support S1 / S2</span><b id="lvS">—</b></div>
+      </div>
+
+      <div class="card">
+        <h2>Indicator Readings</h2>
+        <table>
+          <thead><tr><th>Indicator</th><th>Value</th><th>Read</th></tr></thead>
+          <tbody id="indTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Session Stats</h2>
+        <table>
+          <tbody id="sessionTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Connect Your Bot <span class="sub">scan &amp; start</span></h2>
+        <div id="botArea" style="text-align:center">
+          <img id="botQr" alt="Matrik-N bot QR" style="width:150px;height:150px;border-radius:12px;background:#f5b301;border:2px solid #f5b301;margin:4px 0 6px">
+          <div style="font-size:12px;color:var(--muted)">Scan with Telegram in your phone</div>
+          <div style="font-size:12px;margin-top:4px;color:var(--accent)" id="botTarget">...</div>
+        </div>
+        <div style="margin-top:12px">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Your bot @username (no @)</label>
+          <div style="display:flex;gap:6px">
+            <input id="botUser" placeholder="MyGoldBot"
+              style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:7px 10px;color:var(--text);font-size:13px">
+            <button class="btn" id="setBot" style="white-space:nowrap">Set</button>
+          </div>
+          <div class="side-note" style="margin-top:10px">
+            <b style="color:var(--text)">To start your bot:</b><br>
+            1. In Telegram, message <b>@BotFather</b> → <b>/newbot</b> → follow prompts to get your <b>@username</b> and token.<br>
+            2. Enter the username above to refresh the QR.<br>
+            3. Scan to start chatting. The bot replies to <b>/signal</b>.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Share / Embed</h2>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Grab the live signal as an image card or a text snapshot for social, Telegram, or your own site.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn" href="/api/signal/card.png" target="_blank" style="text-decoration:none;display:inline-block">🖼 Signal Card (PNG)</a>
+          <a class="btn" href="/api/snapshot" target="_blank" style="text-decoration:none;display:inline-block">📄 Text Snapshot</a>
+          <a class="btn" href="/api/signal" target="_blank" style="text-decoration:none;display:inline-block">🔌 JSON API</a>
+        </div>
+        <div class="side-note">
+          HTML embed:<br>
+          <code style="color:var(--accent);font-size:11px;word-break:break-all">&lt;img src="https://YOUR-SITE/api/signal/card.png"&gt;</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot" style="margin-top:26px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
+      <span class="logo" style="width:26px;height:26px;font-size:11px;border-radius:7px">MN</span>
+      <b style="color:var(--text);font-size:13px">Matrik-N</b>
+      <span style="color:var(--muted2)">·</span>
+      <span style="color:var(--muted)">XAUUSD AI Signal</span>
+    </div>
+    Data: real COMEX gold futures (GC=F) via a free market feed · generated on demand.<br>
+    <b>XAUUSD = gold spot; GC=F is used as the closest real-time proxy.</b> Analysis is quantitative; it is not investment advice.<br>
+    <span style="color:var(--muted2)">© Matrik-N. Signals are generated by an algorithmic model — verify before acting.</span>
+  </div>
+</div>
+
+<script>
+/* ---------------------------- state & init ---------------------------- */
+let STATE = window.__INITIAL_STATE__;
+
+function fmt(n){ return (n==null||isNaN(n)) ? '—' : Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+
+/* gauge svg */
+function drawGauge(conf){
+  const svg=document.getElementById('gaugeSvg');
+  const cx=75, cy=78, r=60;
+  const val=Math.max(0,Math.min(100,conf));
+  const start=Math.PI, end=0;
+  const arc=(from,to,color,wd)=>{const a0=start+(Math.PI)*(from/100),a1=start+(Math.PI)*(to/100);
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const large=(to-from)>50?1:0;
+    return `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}" stroke="${color}" stroke-width="12" fill="none" stroke-linecap="round"/>`;};
+  let p='';
+  p+=arc(0,100,'#1e2634',12);
+  p+=arc(0,val, val>=60?'#22c55e':(val>=40?'#f5b301':'#ef4444'),12);
+  svg.innerHTML=p;
+  document.getElementById('gaugeVal').textContent=Math.round(conf)+'%';
+}
+
+/* component bars */
+function bar(id,fillId,val){
+  const v=Math.max(-100,Math.min(100,val));
+  const left=50, half=50;
+  const fill=document.getElementById(fillId);
+  const w=Math.abs(v)/100*half;
+  const col= v>5?'#22c55e':(v<-5?'#ef4444':'#64748b');
+  fill.style.left=(v<0?left-w+'%':left+'%');
+  fill.style.width=w+'%';
+  fill.style.background=col;
+  document.getElementById(id).textContent=(v>0?'+':'')+Math.round(v);
+  document.getElementById(id).style.color=col;
+}
+
+/* ---------------------------- canvas charts ---------------------------- */
+function setupCanvas(c){
+  const dpr=window.devicePixelRatio||1;
+  const rect=c.getBoundingClientRect();
+  c.width=rect.width*dpr; c.height=c.getAttribute('height')*dpr;
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:rect.width,h:parseFloat(c.getAttribute('height'))};
+}
+function yTicks(min,max,n=5){
+  const out=[]; for(let i=0;i<=n;i++) out.push(min+(max-min)*i/n); return out.reverse();
+}
+
+function drawPrice(chart){
+  const c=document.getElementById('priceChart');
+  const {ctx,w,h}=setupCanvas(c);
+  ctx.clearRect(0,0,w,h);
+  const padL=58,padR=10,padT=12,padB=22;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const n=chart.close.length;
+  if(!n) return;
+  let min=Infinity,max=-Infinity;
+  for(let i=0;i<n;i++){const lo=chart.low[i],hi=chart.high[i];
+    const emin=Math.min(chart.bb_lower[i]??hi, lo); const emax=Math.max(chart.bb_upper[i]??hi, hi);
+    if(emin<min)min=emin; if(emax>max)max=emax;}
+  const pad=(max-min)*0.06; min-=pad; max+=pad;
+  const X=i=>padL+plotW*i/(n-1);
+  const Y=v=>padT+plotH*(1-(v-min)/(max-min));
+
+  // grid + y labels
+  ctx.font='10px sans-serif'; ctx.fillStyle='#5f7189';
+  yTicks(min,max,5).forEach(v=>{const y=Y(v);ctx.strokeStyle='rgba(30,38,52,.6)';ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillText(v.toFixed(0),8,y+3);});
+
+  // x labels (approx 4)
+  ctx.textAlign='center';
+  for(let i=0;i<4;i++){const idx=Math.floor((n-1)*i/3);ctx.fillText(chart.times[idx].slice(5),padL+plotW*idx/(n-1),h-6);}
+
+  // bollinger band (filled when enough bars, else dashed lines)
+  const haveBB = chart.bb_upper[0]!=null && chart.bb_lower[0]!=null;
+  if(haveBB){
+    ctx.beginPath();ctx.moveTo(X(0),Y(chart.bb_upper[0]));
+    for(let i=1;i<n;i++)ctx.lineTo(X(i),Y(chart.bb_upper[i]));
+    for(let i=n-1;i>=0;i--)ctx.lineTo(X(i),Y(chart.bb_lower[i]));
+    ctx.closePath();ctx.fillStyle='rgba(56,189,248,.06)';ctx.fill();
+  }
+  ctx.strokeStyle='rgba(56,189,248,.32)';ctx.setLineDash([3,3]);
+  const dashedBB=(arr)=>{let started=false;ctx.beginPath();
+    for(let i=0;i<n;i++){const v=arr[i];if(v==null){started=false;continue;}
+      if(!started){ctx.moveTo(X(i),Y(v));started=true;}else ctx.lineTo(X(i),Y(v));}ctx.stroke();};
+  dashedBB(chart.bb_upper);dashedBB(chart.bb_lower);ctx.setLineDash([]);
+
+  // ema lines
+  const line=(arr,col)=>{ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=1.4;let started=false;
+    for(let i=0;i<n;i++){const v=arr[i];if(v==null){started=false;continue;}if(!started){ctx.moveTo(X(i),Y(v));started=true;}else ctx.lineTo(X(i),Y(v));}ctx.stroke();ctx.lineWidth=1;};
+  line(emaOf(chart,'ema9'),'#38bdf8'); line(emaOf(chart,'ema21'),'#a78bfa'); line(emaOf(chart,'ema50'),'#f5b301');
+
+  // volume bars
+  const vmax=Math.max(1,...chart.volume.slice(-80).map(v=>v||0));
+  for(let i=0;i<n;i++){const v=chart.volume[i]||0;const up=chart.close[i]>=chart.open[i];
+    ctx.fillStyle=up?'rgba(34,197,94,.25)':'rgba(239,68,68,.25)';
+    ctx.fillRect(X(i)-1.5,h-padB-(v/vmax)*(plotH*0.18),3,(v/vmax)*(plotH*0.18));}
+
+  // candles
+  const cw=Math.max(2,Math.floor(plotW/n*0.55));
+  for(let i=0;i<n;i++){
+    const x=X(i); const up=chart.close[i]>=chart.open[i];
+    ctx.strokeStyle=up?'#22c55e':'#ef4444'; ctx.fillStyle=ctx.strokeStyle;
+    ctx.beginPath();ctx.moveTo(x,Y(chart.high[i]));ctx.lineTo(x,Y(chart.low[i]));ctx.stroke();
+    const y1=Y(Math.max(chart.open[i],chart.close[i])),y2=Y(Math.min(chart.open[i],chart.close[i]));
+    ctx.fillRect(x-cw/2,y1,cw,Math.max(1,y2-y1));
+  }
+
+  // last price line
+  const lp=chart.close[n-1];
+  ctx.strokeStyle='rgba(245,179,1,.8)';ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(padL,Y(lp));ctx.lineTo(w-padR,Y(lp));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#f5b301';ctx.fillRect(padL,Y(lp),padL,14);
+  ctx.fillStyle='#1a1200';ctx.font='bold 10px sans-serif';ctx.textAlign='left';ctx.fillText(fmt(lp),padL+4,Y(lp)+9);
+}
+function emaOf(chart,k){return chart[k];}
+
+function drawRsi(chart){
+  const c=document.getElementById('rsiChart'); const {ctx,w,h}=setupCanvas(c);
+  ctx.clearRect(0,0,w,h); const padL=34,padR=8,padT=8,padB=14;
+  const plotW=w-padL-padR,plotH=h-padT-padB,n=chart.rsi.length;
+  ctx.font='10px sans-serif';
+  const Y=v=>padT+plotH*(1-v/100);
+  [30,50,70].forEach(v=>{const y=Y(v);ctx.strokeStyle=v===50?'rgba(100,116,139,.5)':'rgba(30,38,52,.7)';ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillStyle='#5f7189';ctx.fillText(String(v),4,y+3);});
+  ctx.fillStyle='#5f7189';ctx.textAlign='center';
+  for(let i=0;i<3;i++){const idx=Math.floor((n-1)*i/2);ctx.fillText(chart.times[idx].slice(5),padL+plotW*idx/(n-1),h-4);}
+  // fill zone
+  const line=(arr,col,fill)=>{ctx.beginPath();let started=false;
+    for(let i=0;i<n;i++){const v=arr[i];if(v==null){started=false;continue;}const x=padL+plotW*i/(n-1),y=Y(v);if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
+    if(fill){ctx.lineTo(padL+plotW,padT+plotH);ctx.lineTo(padL,padT+plotH);ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+    ctx.strokeStyle=col;ctx.stroke();};
+  line(chart.rsi,'#38bdf8','rgba(56,189,248,.08)');
+}
+function drawMacd(chart){
+  const c=document.getElementById('macdChart'); const {ctx,w,h}=setupCanvas(c);
+  ctx.clearRect(0,0,w,h); const padL=34,padR=8,padT=8,padB=14;
+  const plotW=w-padL-padR,plotH=h-padT-padB,n=chart.macd.length;
+  const macdVals=chart.macd.filter(v=>v!=null), sigVals=chart.macd_signal.filter(v=>v!=null);
+  if(!macdVals.length&&!sigVals.length) return;
+  let mn=Math.min(99,...macdVals),mx=Math.max(-99,...macdVals);
+  let sm=Math.min(99,...sigVals),sx=Math.max(-99,...sigVals);
+  mn=Math.min(mn,sm);mx=Math.max(mx,sx);const pad=((mx-mn)*0.1)||1;mn-=pad;mx+=pad;
+  const Y=v=>padT+plotH*(1-(v-mn)/(mx-mn));
+  ctx.font='10px sans-serif';ctx.fillStyle='#5f7189';
+  [0, (mn+mx)/2].forEach(v=>{const y=Y(v);ctx.strokeStyle='rgba(100,116,139,.4)';ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillText(v.toFixed(2),4,y+3);});
+  // histogram
+  const bw=Math.max(1,Math.floor(plotW/n*0.6));
+  for(let i=0;i<n;i++){const v=chart.macd_hist[i];if(v==null)continue;const x=padL+plotW*i/(n-1);
+    ctx.fillStyle=v>=0?'rgba(34,197,94,.6)':'rgba(239,68,68,.6)';ctx.fillRect(x-bw/2,Y(v),bw,Y(0)-Y(v));}
+  // lines
+  const line=(arr,col)=>{ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=1.3;let s=false;
+    for(let i=0;i<n;i++){const v=arr[i];if(v==null){s=false;continue;}if(!s){ctx.moveTo(padL+plotW*i/(n-1),Y(v));s=true;}else ctx.lineTo(padL+plotW*i/(n-1),Y(v));}ctx.stroke();ctx.lineWidth=1;};
+  line(chart.macd,'#38bdf8');line(chart.macd_signal,'#f5b301');
+}
+
+/* ---------------------------- render ---------------------------- */
+function render(s){
+  document.getElementById('price').textContent=fmt(s.price);
+  const chg=s.change_pct;
+  const chgEl=document.getElementById('chg');
+  chgEl.textContent=(chg>0?'+':'')+fmt(chg).replace('.00','')+'%';
+  chgEl.className='chg '+(chg>=0?'up':'down');
+  document.getElementById('updated').textContent='updated '+new Date(s.time.replace(' ','T')).toLocaleTimeString();
+
+  // signal
+  const badge=document.getElementById('sigbadge');
+  badge.textContent=s.signal;
+  badge.className='signal-badge '+s.signal;
+  document.getElementById('strength').textContent=s.strength+' conviction · score '+ (s.score>0?'+':'')+s.score;
+  drawGauge(s.confidence);
+  bar('c1','f1',s.components.trend);
+  bar('c2','f2',s.components.momentum);
+  bar('c3','f3',s.components.volatility);
+  bar('c4','f4',s.components.volume);
+  const sf=document.getElementById('scoreFill');
+  const scv=Math.max(-100,Math.min(100,s.score));
+  sf.style.left=(scv<0?(50+scv/2)+'%':'50%'); sf.style.width=(Math.abs(scv)/2)+'%';
+  sf.style.background= scv>5?'#22c55e':(scv<-5?'#ef4444':'#64748b');
+
+  // plan
+  document.getElementById('plEntry').textContent=fmt(s.levels.entry);
+  document.getElementById('plStop').textContent=fmt(s.levels.stop);
+  document.getElementById('plTarget').textContent=fmt(s.levels.target);
+  document.getElementById('plRr').textContent='1 : '+s.levels.rr.toFixed(1);
+  document.getElementById('plAtr').textContent=fmt(s.levels.atr);
+
+  // levels
+  document.getElementById('lvSup').textContent=fmt(s.levels.nearest_support);
+  document.getElementById('lvRes').textContent=fmt(s.levels.nearest_resistance);
+  document.getElementById('lvP').textContent=fmt(s.pivots.pivot);
+  document.getElementById('lvR').textContent=fmt(s.pivots.r1)+' / '+fmt(s.pivots.r2);
+  document.getElementById('lvS').textContent=fmt(s.pivots.s1)+' / '+fmt(s.pivots.s2);
+
+  // indicators
+  const tb=document.getElementById('indTable');tb.innerHTML='';
+  s.readings.forEach(r=>{
+    const bias=r.bias;
+    const cls=bias>0?'b-up':(bias<0?'b-down':'b-neu');
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${r.name}</td><td class="vals">${r.value}</td><td class="${cls}">${r.label}</td>`;
+    tb.appendChild(row);
+  });
+
+  // session
+  const st=document.getElementById('sessionTable');st.innerHTML='';
+  [['Day High',fmt(s.session.day_high)],['Day Low',fmt(s.session.day_low)],
+   ['Session Range',fmt(s.session.range)],['ATR Volatility',fmt(s.session.volatility_pct)+'%'],
+   ['Source',s.symbol]].forEach(([k,v])=>{
+    const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td class="vals" style="text-align:right">${v}</td>`;st.appendChild(tr);
+  });
+
+  // charts
+  if(s.chart){drawPrice(s.chart);drawRsi(s.chart);drawMacd(s.chart);}
+  document.getElementById('liveTxt').textContent='LIVE';
+}
+
+/* ---------------------------- fetch / refresh ---------------------------- */
+async function refresh(){
+  document.body.classList.add('updating');
+  try{
+    const r=await fetch('/api/signal');
+    const d=await r.json();
+    if(d && d.price){ STATE=d; render(d); document.getElementById('liveTxt').textContent='LIVE'; }
+  }catch(e){
+    // sandboxed preview may block network; keep embedded data and flag it
+    document.getElementById('liveTxt').textContent='PREVIEW';
+  }
+  document.body.classList.remove('updating');
+}
+
+document.getElementById('refresh').addEventListener('click',refresh);
+document.getElementById('period').addEventListener('change',(e)=>{ window.location.search='?period='+e.target.value; });
+
+/* ---------------------------- bot connect panel ---------------------------- */
+async function loadBot(){
+  try{
+    const r=await fetch('/api/bot/config');
+    const d=await r.json();
+    const u=(d.bot_username||'').trim();
+    if(u){
+      document.getElementById('botQr').src='/api/bot/qr?user='+encodeURIComponent(u);
+      document.getElementById('botTarget').textContent='@'+u;
+      document.getElementById('botUser').value=u;
+    }else{
+      // no bot yet -> show built-in Matrik-N bot as a working example
+      document.getElementById('botQr').src='/api/bot/qr?user=MatrikN_gold_bot';
+      document.getElementById('botTarget').textContent='t.me/MatrikN_gold_bot';
+    }
+  }catch(e){
+    document.getElementById('botTarget').textContent='Set your bot to enable the QR.';
+  }
+}
+async function setBot(){
+  const u=(document.getElementById('botUser').value||'').trim();
+  try{
+    await fetch('/api/bot/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bot_username:u})});
+  }catch(e){}
+  loadBot();
+}
+document.getElementById('setBot').addEventListener('click',setBot);
+document.getElementById('botUser').addEventListener('keydown',(e)=>{if(e.key==='Enter')setBot();});
+
+window.addEventListener('resize',()=>{ if(STATE&&STATE.chart){render(STATE);} });
+
+/* boot */
+addEventListener('DOMContentLoaded',()=>{ if(STATE) render(STATE); });
+</script>
+</body>
+</html>
