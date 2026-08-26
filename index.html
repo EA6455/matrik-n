@@ -541,7 +541,7 @@ document.getElementById('botUser').addEventListener('keydown',(e)=>{if(e.key==='
 window.addEventListener('resize',()=>{ if(STATE&&STATE.chart){render(STATE);} });
 
 /* boot */
-addEventListener('DOMContentLoaded',()=>{ if(STATE) render(STATE); });
+addEventListener('DOMContentLoaded',()=>{ if(STATE) render(STATE); else refresh(); loadBot(); });
 </script>
 </body>
 </html>

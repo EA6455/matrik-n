@@ -45,17 +45,24 @@ def cached_signal(period: str) -> dict:
     return data
 
 
+@app.get("/health")
+def health():
+    return jsonify({"ok": True})
+
+
 @app.get("/")
 def index():
     period = request.args.get("period", "5d")
     html = INDEX_PATH.read_text(encoding="utf-8")
+    state = None
     try:
-        state = cached_signal(period)
-        inject = f"<script>window.__INITIAL_STATE__={json.dumps(state)};</script>"
-        html = html.replace("</head>", inject + "\n</head>")
-    except Exception as e:
-        inject = f"<script>window.__INITIAL_STATE__=null;console.warn({json.dumps(str(e))});</script>"
-        html = html.replace("</head>", inject + "\n</head>")
+        hit = _cache.get(period)
+        if hit:
+            state = hit[1]
+    except Exception:
+        state = None
+    inject = f"<script>window.__INITIAL_STATE__={json.dumps(state)};</script>"
+    html = html.replace("</head>", inject + "\n</head>")
     return Response(html, mimetype="text/html")
 
 
